@@ -73,9 +73,17 @@ router.get("/", async (req, res, next) => {
       // count unread messages
       const unreadMessages = convoJSON.messages.filter(message => (
         !message.read && 
-        message.senderId !== Number(userId))
-        );
+        message.senderId !== Number(userId)
+      ));
       convoJSON.unreadMessages = unreadMessages.length;
+
+      // get the last read message by the other user
+      const readMessagesByOtherUser = convoJSON.messages.filter(message => (
+        message.read && 
+        message.senderId === Number(userId)
+      ));
+      const lastReadMessage = readMessagesByOtherUser[readMessagesByOtherUser.length - 1] || { id: -1 };
+      convoJSON.lastReadMessageByOtherUser = lastReadMessage.id;
 
       // set properties for notification count and latest message preview
       const latestMessageIndex = convoJSON.messages.length - 1;
@@ -101,6 +109,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+// update messages read status
 router.put('/:id', async (req, res, next) => {
   try {
     const conversationId = req.params.id;
@@ -116,15 +125,18 @@ router.put('/:id', async (req, res, next) => {
     if (!messages) {
       return res.sendStatus(401);
     }
+    
+    var lastReadMessage = -1;
 
     for (let i = 0; i < messages.length; i++) {
       if (messages[i].senderId !== Number(currentUserId)) {
         messages[i].read = true;
+        lastReadMessage = messages[i].id
         messages[i].save();
       }
     }
 
-    res.json(messages);
+    res.json({ messages, lastReadMessage });
   } catch (error) {
     next(error);
   }
