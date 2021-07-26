@@ -92,6 +92,13 @@ const sendMessage = (data, body) => {
   });
 };
 
+const sendReadMessage = (messageId, conversationId) => {
+  socket.emit("read-message", {
+    message: messageId,
+    conversation: conversationId,
+  });
+};
+
 // message format to send: {recipientId, text, conversationId}
 // conversationId will be set to null if its a brand new conversation
 export const postMessage = (body) => async (dispatch) => {
@@ -124,7 +131,13 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
 export const updateMessagesReadStatus = (conversationId, userId) => async (dispatch) => {
   try {
     const { data } = await axios.put(`/api/conversations/${conversationId}`, {userId});
-    dispatch(resetUnreadMessages(data, conversationId))
+    const messages = data.messages;
+    const lastReadMessageId = data.lastReadMessage;
+
+    dispatch(resetUnreadMessages(messages, conversationId));
+    
+    sendReadMessage(lastReadMessageId, conversationId);
+
   } catch (error) {
     console.log(error);
   }

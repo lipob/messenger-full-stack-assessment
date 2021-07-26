@@ -84,13 +84,28 @@ export const addNewConvoToStore = (state, recipientId, message) => {
 
 // update messages when read
 export const updateMessages = (state, payload) => {
-  const { data, conversationId } = payload;
+  const { messages, conversationId } = payload;
 
   return state.map((convo) => {
     if (convo.id === conversationId) {
       const convoCopy = { ...convo };
-      convoCopy.messages = data;
+      convoCopy.messages = messages;
       convoCopy.unreadMessages = 0;
+      return convoCopy;
+    } else {
+      return convo;
+    }
+  });
+};
+
+// update the last read message by the other user
+export const updateLastReadMessage = (state, payload) => {
+  const { messageId, conversationId } = payload;
+
+  return state.map((convo) => {
+    if(convo.id === conversationId) {
+      const convoCopy = { ...convo };
+      convoCopy.lastReadMessageByOtherUser = messageId;
       return convoCopy;
     } else {
       return convo;

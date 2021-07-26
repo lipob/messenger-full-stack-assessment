@@ -4,6 +4,7 @@ import {
   setNewMessage,
   removeOfflineUser,
   addOnlineUser,
+  updateLastReadMessageByOther,
 } from "./store/conversations";
 
 const token = localStorage.getItem("messenger-token");
@@ -22,6 +23,9 @@ socket.on("connect", () => {
   });
   socket.on("new-message", (data) => {
     store.dispatch(setNewMessage(data.message, data.sender));
+  });
+  socket.on("read-message", (data) => {
+    store.dispatch(updateLastReadMessageByOther(data.message, data.conversation));
   });
 });
 
